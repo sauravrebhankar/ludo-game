@@ -1,61 +1,131 @@
-// script.js
-document.addEventListener('DOMContentLoaded', () => {
-    const rollBtn = document.getElementById('roll-btn');
+let currentPlayer = 1;
+let diceResult = 0;
+let tokens = document.querySelectorAll('.token');
+const positions = createPositions();
+
+function createPositions() {
+    const positions = [];
+    const boardSize = 500;
+    const pathWidth = 350;
+    
+    // Generate positions for the circular path
+    for(let i = 0; i < 56; i++) {
+        const angle = (i / 56) * Math.PI * 2;
+        const x = Math.cos(angle) * pathWidth/2;
+        const y = Math.sin(angle) * pathWidth/2;
+        positions.push({x: boardSize/2 + x, y: boardSize/2 + y});
+    }
+    return positions;
+}
+
+function rollDice() {
+    if(diceResult !== 0) return;
+    
     const dice = document.getElementById('dice');
-    const turnIndicator = document.getElementById('turn-indicator');
-    const board = document.querySelector('.board');
+    dice.style.animation = 'dice-shake 0.5s 3';
+    
+    setTimeout(() => {
+        diceResult = Math.floor(Math.random() * 6) + 1;
+        dice.textContent = diceResult;
+        dice.style.animation = '';
+        enableMovableTokens();
+    }, 1500);
+}
 
-    let currentPlayer = 1;
-    let diceValue = 0;
-
-    // Initialize board cells
-    for (let i = 0; i < 225; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        if (i === 0 || i === 14 || i === 210 || i === 224) {
-            cell.classList.add('safe-cell');
-        }
-        board.appendChild(cell);
-    }
-
-    // Roll dice
-    rollBtn.addEventListener('click', () => {
-        diceValue = Math.floor(Math.random() * 6) + 1;
-        dice.textContent = getDiceFace(diceValue);
-        turnIndicator.textContent = `Player ${currentPlayer}'s Turn (Rolled ${diceValue})`;
-        enableTokenSelection();
-    });
-
-    // Enable token selection
-    function enableTokenSelection() {
-        document.querySelectorAll('.token').forEach(token => {
-            if (token.dataset.player == currentPlayer) {
-                token.classList.add('selectable');
-                token.addEventListener('click', handleTokenClick);
+function enableMovableTokens() {
+    tokens.forEach(token => {
+        const isCurrentPlayer = parseInt(token.dataset.player) === currentPlayer;
+        const position = parseInt(token.dataset.position);
+        
+        if(isCurrentPlayer) {
+            if(position === 0 && diceResult === 6) {
+                token.style.cursor = 'pointer';
+                token.onclick = handleTokenClick;
             }
-        });
-    }
+            else if(position > 0) {
+                token.style.cursor = 'pointer';
+                token.onclick = handleTokenClick;
+            }
+        }
+    });
+}
 
-    // Handle token click
-    function handleTokenClick(e) {
-        const token = e.target;
-        alert(`Player ${currentPlayer} moved token ${token.dataset.token} by ${diceValue} steps!`);
-        currentPlayer = currentPlayer === 1 ? 2 : 1;
-        turnIndicator.textContent = `Player ${currentPlayer}'s Turn`;
-        resetTokenSelection();
+function handleTokenClick(e) {
+    const token = e.target;
+    const currentPosition = parseInt(token.dataset.position);
+    let newPosition = currentPosition + diceResult;
+    
+    if(currentPosition === 0 && diceResult !== 6) return;
+    
+    if(newPosition > 56) return;
+    
+    // Move token
+    if(currentPosition === 0) newPosition = 1; // Exit base
+    
+    // Check for collisions
+    tokens.forEach(otherToken => {
+        if(otherToken !== token && 
+           parseInt(otherToken.dataset.position) === newPosition &&
+           otherToken.dataset.player !== token.dataset.player) {
+            otherToken.dataset.position = '0';
+            updateTokenPosition(otherToken);
+        }
+    });
+    
+    token.dataset.position = newPosition.toString();
+    updateTokenPosition(token);
+    
+    // Check winning condition
+    if(newPosition === 56) {
+        const playerTokens = [...tokens].filter(t => 
+            t.dataset.player === token.dataset.player
+        );
+        if(playerTokens.every(t => parseInt(t.dataset.position) === 56)) {
+            setTimeout(() => {
+                alert(Player ${currentPlayer} wins!);
+                resetGame();
+            }, 100);
+        }
     }
+    
+    diceResult = 0;
+    document.getElementById('dice').textContent = '🎲';
+    switchPlayer();
+}
 
-    // Reset token selection
-    function resetTokenSelection() {
-        document.querySelectorAll('.token').forEach(token => {
-            token.classList.remove('selectable');
-            token.removeEventListener('click', handleTokenClick);
-        });
+function updateTokenPosition(token) {
+    const position = parseInt(token.dataset.position);
+    if(position === 0) {
+        // Return to base
+        const base = token.classList.contains('red') ? 
+            {x: '25%', y: '25%'} : {x: '75%', y: '75%'};
+        token.style.left = base.x;
+        token.style.top = base.y;
+    } else {
+        const pos = positions[position - 1];
+        token.style.left = pos.x + 'px';
+        token.style.top = pos.y + 'px';
     }
+}
 
-    // Get dice face emoji
-    function getDiceFace(value) {
-        const faces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-        return faces[value - 1];
-    }
-});
+function switchPlayer() {
+    currentPlayer = currentPlayer === 1 ? 2 : 1;
+    document.getElementById('player-turn').textContent = 
+        Player ${currentPlayer}'s Turn;
+    tokens.forEach(token => {
+        token.style.cursor = 'default';
+        token.onclick = null;
+    });
+}
+
+function resetGame() {
+    tokens.forEach(token => {
+        token.dataset.position = '0';
+        updateTokenPosition(token);
+    });
+    currentPlayer = 1;
+    document.getElementById('player-turn').textContent = "Player 1's Turn";
+}
+
+// Initialize token positions
+tokens.forEach(updateTokenPosition);
