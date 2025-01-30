@@ -1,0 +1,129 @@
+/* styles.css */
+:root {
+    --red: #ff4757;
+    --yellow: #ffd700;
+    --green: #2ed573;
+    --blue: #1e90ff;
+}
+
+body {
+    font-family: 'Arial Rounded MT Bold', sans-serif;
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.game-container {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.dice-container {
+    margin-bottom: 1rem;
+}
+
+.dice {
+    font-size: 3rem;
+    animation: diceBounce 1s infinite;
+}
+
+@keyframes diceBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.roll-btn {
+    background: var(--green);
+    border: none;
+    padding: 0.5rem 1rem;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: transform 0.2s;
+}
+
+.roll-btn:hover {
+    transform: scale(1.05);
+    background: #26af5f;
+}
+
+.turn-indicator {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.board {
+    width: 400px;
+    height: 400px;
+    background: #fff;
+    border-radius: 15px;
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    grid-template-rows: repeat(15, 1fr);
+    gap: 2px;
+    padding: 10px;
+    background: linear-gradient(45deg, #2c3e50, #34495e);
+    margin: 0 auto;
+}
+
+.cell {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 3px;
+}
+
+.safe-cell {
+    background: repeating-linear-gradient(
+        45deg,
+        #2ecc71,
+        #2ecc71 10px,
+        #27ae60 10px,
+        #27ae60 20px
+    );
+}
+
+.players {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 2rem;
+}
+
+.player {
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.tokens {
+    display: flex;
+    gap: 10px;
+    margin-top: 1rem;
+}
+
+.token {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.token:hover {
+    transform: scale(1.1);
+}
+
+.red .token { background: var(--red); }
+.yellow .token { background: var(--yellow); }
